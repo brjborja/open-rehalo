@@ -1,0 +1,18 @@
+# Third-party or proprietary material: never commit
+reference/
+# Dependencies and builds
+**/node_modules/
+**/.build/
+clients/desktop/dist/
+dist/
+# Runtime data (jwt.secret, users.json)
+sh2-server/data/
+# Secrets and loose binaries
+*.keystore
+*.keystore.password.txt
+*.apk
+*.xapk
+*.pem
+# Misc
+.DS_Store
+*.log

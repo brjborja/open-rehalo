@@ -1,0 +1,110 @@
+# XcodeGen spec for the rehalo iOS app (SmartHalo 2 revival). Targets/bundle IDs keep their
+# original SmartHalo2 names so installed apps update in place and keep their Keychain data.
+# Generate the Xcode project with:  xcodegen generate   (run from clients/ios/)
+#
+# The app target compiles only its own sources and links the SH2Protocol library declared in
+# Package.swift as a LOCAL Swift package dependency, so the protocol port lives in exactly one
+# place (and stays `swift test`-able on macOS).
+name: SmartHalo2
+
+options:
+  bundleIdPrefix: com.sh2
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  developmentLanguage: en      # UI strings: Resources/Localizable.xcstrings (en + es)
+
+packages:
+  SH2Protocol:
+    # Local package: the directory containing Package.swift (this directory).
+    path: SH2Protocol
+
+targets:
+  SmartHalo2:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources/SmartHalo2App
+        excludes:
+          - "Resources/DemoRoute.gpx"
+      # Bundled demo route (M9) — listed explicitly so it's always a Copy Bundle Resource.
+      - path: Sources/SmartHalo2App/Resources/DemoRoute.gpx
+        buildPhase: resources
+      # Code shared with the Live Activity extension (ActivityAttributes + light intent).
+      - path: Sources/Shared
+    dependencies:
+      - package: SH2Protocol
+        product: SH2Protocol
+      # M12: navigation Live Activity / Dynamic Island (embedded in PlugIns/).
+      - target: HaloLiveActivity
+        embed: true
+    settings:
+      base:
+        INFOPLIST_FILE: Sources/SmartHalo2App/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.sh2.smarthalo2
+        PRODUCT_NAME: SmartHalo2
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+        # Set your Apple Developer Team ID here (or pick it in Xcode > Signing & Capabilities):
+        # DEVELOPMENT_TEAM: ABCDE12345
+        SWIFT_STRICT_CONCURRENCY: minimal
+        # `ToggleHaloLightIntent.perform()` only does real work in the app build.
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) HALO_APP"
+
+  # M12 — Widget Extension hosting ONLY the navigation Live Activity (no home-screen widget).
+  HaloLiveActivity:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Sources/HaloLiveActivity
+      - path: Sources/Shared
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    settings:
+      base:
+        INFOPLIST_FILE: Sources/HaloLiveActivity/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.sh2.smarthalo2.LiveActivity
+        PRODUCT_NAME: HaloLiveActivity
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SWIFT_STRICT_CONCURRENCY: minimal
+
+  # Website screenshots in demo mode (.github/workflows/screenshots.yml). Never archived.
+  SmartHalo2UITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: UITests
+    dependencies:
+      - target: SmartHalo2
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sh2.smarthalo2.UITests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+
+schemes:
+  SmartHalo2:
+    build:
+      targets:
+        SmartHalo2: all
+    test:
+      targets:
+        - SmartHalo2UITests

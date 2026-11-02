@@ -1,0 +1,103 @@
+<p align="center"><img src="brand/png/rehalo-horizontal.png" alt="rehalo" height="72"></p>
+
+# rehalo: an open-source app for the SmartHalo 2
+
+Website: [rehalo.app](https://rehalo.app/) · Brand assets: [`brand/`](brand/).
+
+The company behind the SmartHalo 2 bike ring closed in 2021 and its servers went with it. rehalo is an
+independent iPhone app that talks to the ring directly over Bluetooth, with no account and no company
+servers. It was built from the published firmware source and by reverse engineering. An Android app
+and App Store and Google Play releases are planned.
+
+> **Early beta.** The app connects to a real SmartHalo 2, completes the Bluetooth handshake and reclaims
+> a ring. Navigation, alarm, ring cards, light, and call and rain alerts are built but still need road
+> testing.
+
+> **Disclaimer.** Not affiliated with SmartHalo or CycleLabs. Intended for reviving **your own** device.
+> No warranty: use at your own risk. Opening the case and touching the battery can damage the hardware.
+
+## Features (iOS app)
+
+Everything that touches the ring runs over Bluetooth. A self-hosted server is optional. Maps, search
+and directions use Apple Maps and need internet.
+
+- **Navigation:** import a GPX route or search for a place (City, Road or Trails profile), and get
+  turn guidance on the ring. Compass mode points at your destination. Includes a Live Activity and a
+  3D route view.
+- **Alarm:** arms when you leave and disarms when your iPhone returns, with a five-tap code on the ring.
+- **Ring cards and shortcuts:** clock, battery, speed, distance, ride time and average speed, plus tap
+  shortcuts for the horn, the light and quick readings.
+- **Front light:** on/off, brightness, steady or blinking.
+- **Call alerts:** the ring pulses and a short tap silences it. iOS gives no caller name.
+- **Rain alerts:** optional. Sends your approximate location to [Open-Meteo](https://open-meteo.com/).
+- **Ring recovery:** reclaim a ring whose password was lost. Passwords are kept in your Keychain.
+- **Demo mode:** explore the app without a ring.
+
+**Not implemented:** firmware updates over the air, online rerouting, app notifications on the ring,
+ride recording, and Strava or Apple Health sync.
+
+## What's in here
+
+| Path | What |
+| --- | --- |
+| `clients/ios/` | The native SwiftUI app and the `SH2Protocol` Swift package. |
+| `clients/linux/` | Linux Bluetooth command-line tools (`sh2-scan`, `sh2-pair`). |
+| `clients/desktop/` | Electron desktop app on top of `sh2-core`. |
+| `sh2-core/` | Transport-agnostic protocol core in JavaScript, with no dependencies. |
+| `sh2-server/` | Optional self-hosted server for accounts and rides. |
+| `emulator/` | Software model of the SmartHalo 2 that runs the recovery end to end. |
+| `site/` | The project website, published to GitHub Pages. |
+| `docs/` | Protocol, API and app specifications. |
+
+The Linux and desktop tools need the SmartHalo 2 firmware source to run a real recovery: point
+`SH2_FIRMWARE_SRC` at your copy.
+
+## Install the iOS app
+
+rehalo isn't on the App Store yet. The app is unsigned, and you sideload it with your own Apple ID.
+
+**Get the `.ipa`:** download `rehalo-unsigned.ipa` from the
+[latest release](https://github.com/brjborja/open-rehalo/releases/latest), or build it yourself with
+`cd clients/ios && xcodegen generate` on a Mac.
+
+**Install it** with [iLoader](https://github.com/nab138/iloader) over USB, or with
+[SideStore](https://sidestore.io) for automatic 7-day re-signing. Then trust the certificate in
+*Settings › General › VPN & Device Management*. iOS 16 and later also need *Developer Mode*.
+
+Use a real iPhone: the simulator has no Bluetooth, though demo mode works there.
+
+### Reclaiming your ring
+
+Open the app, pick your SmartHalo and follow the recovery wizard. The ring has to reboot once, because
+a firmware quirk keeps the old password in memory until the next boot. You can drain the battery and
+recharge it, or disconnect the battery if you're comfortable opening the case. There is no reboot over
+Bluetooth: the firmware refuses it unless an app is already paired. Use this only on your own device.
+
+## Self-hosted server (optional)
+
+`sh2-server/` powers the app's server mode with accounts and ride history. It's a dependency-free Node
+service: run `docker compose up -d` from that folder on any machine.
+
+## Other clients
+
+- **Linux:** `cd clients/linux && npm i`, then `node bin/sh2-scan.mjs` or `node bin/sh2-pair.mjs <MAC>`.
+- **Desktop:** `cd clients/desktop && npm i && npm run dist` builds an AppImage.
+
+## Security notes
+
+- **Anyone in Bluetooth range can un-pair a SmartHalo 2.** This is how the original firmware works, and
+  it's what makes recovery possible. It gives no control of the ring by itself, but it does weaken the
+  ring's anti-theft protection.
+- **Everything else needs pairing.** The firmware rejects light, ring, sound, alarm, name, reboot and
+  battery commands unless an app is paired.
+
+## Credits
+
+Built on the firmware source published after SmartHalo closed, and on community work:
+[kperdlich/SmartHalo](https://github.com/kperdlich/SmartHalo),
+[aolde/smarthalo-api](https://github.com/aolde/smarthalo-api) and
+[smarthalo-community/smarthalo-firmware](https://github.com/smarthalo-community/smarthalo-firmware).
+
+## License
+
+[MIT](LICENSE) for rehalo's original code. See [NOTICE.md](NOTICE.md) for what that doesn't cover.

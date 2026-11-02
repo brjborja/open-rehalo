@@ -1,0 +1,12 @@
+{
+  "name": "sh2-server",
+  "version": "0.1.0",
+  "description": "Open-source reimplementation of the SmartHalo 2 cloud backend",
+  "type": "module",
+  "main": "src/index.mjs",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "test": "node --test"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,52 @@
+{
+  "name": "sh2-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop GUI (Electron) for the SmartHalo 2 — scan, recover/pair and control over BLE, with a hardware-free mock mode on the emulator.",
+  "author": "brjborja",
+  "license": "MIT",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:mock": "electron . --mock",
+    "test": "node --test",
+    "dist": "electron-builder --linux AppImage",
+    "pack": "electron-builder --dir"
+  },
+  "dependencies": {
+    "node-ble": "^1.9.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "io.github.brjborja.rehalo.desktop",
+    "productName": "rehalo Desktop",
+    "asar": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      { "from": "../../sh2-core/src", "to": "sh2-core/src" },
+      { "from": "../../sh2-core/test/mock-device.mjs", "to": "sh2-core/test/mock-device.mjs" },
+      { "from": "../../sh2-core/package.json", "to": "sh2-core/package.json" },
+      { "from": "../../emulator/src", "to": "emulator/src" },
+      { "from": "../../clients/linux/src", "to": "clients/linux/src" }
+    ],
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Utility",
+      "icon": "build/icon.png",
+      "synopsis": "Control & recovery tool for the SmartHalo 2 bike light"
+    },
+    "appImage": {
+      "artifactName": "rehalo-Desktop-${version}.AppImage"
+    }
+  }
+}

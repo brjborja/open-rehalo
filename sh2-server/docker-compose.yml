@@ -1,0 +1,24 @@
+# sh2-server — open-source reimplementation of the SmartHalo 2 cloud.
+# Node with no dependencies: uses the official image and mounts the code (no build needed).
+services:
+  sh2-server:
+    image: node:22-alpine
+    container_name: sh2-server
+    working_dir: /app
+    command: ["node", "src/index.mjs"]
+    environment:
+      PORT: "8730"
+      SH2_DATA_DIR: "/data"          # users.json + jwt.secret persist here
+      # SH2_JWT_SECRET: "..."        # optional: set it so tokens survive recreating /data
+      # SH2_CONSUMER_TOKEN: "..."    # optional: require this x-consumer-token header
+    volumes:
+      - .:/app:ro                    # code (read-only)
+      - ./data:/data                 # persistent data
+    ports:
+      - "8730:8730"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8730/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

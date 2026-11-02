@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:;" />
+  <title>rehalo Desktop</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot" id="statusDot" aria-hidden="true"></span>
+      <h1>rehalo</h1>
+      <span class="sub">desktop</span>
+    </div>
+    <div class="modeswitch" role="group" aria-label="Mode">
+      <button id="modeMock" class="seg" data-mode="mock">Emulator</button>
+      <button id="modeBle" class="seg" data-mode="ble">Real BLE</button>
+    </div>
+    <div class="connpill" id="connPill">Disconnected</div>
+  </header>
+
+  <main class="grid">
+    <!-- 1. scan + devices -->
+    <section class="card">
+      <div class="card-h"><h2>1 · Find</h2><button id="scanBtn" class="btn">Scan</button></div>
+      <ul id="deviceList" class="devlist"><li class="empty">Press "Scan".</li></ul>
+    </section>
+
+    <!-- halo visual -->
+    <section class="card halo-card">
+      <div class="halo-wrap">
+        <div id="halo" class="halo off"><div class="halo-core"></div></div>
+      </div>
+      <div class="halo-label" id="haloLabel">light off</div>
+    </section>
+
+    <!-- 2. pair / recover -->
+    <section class="card">
+      <div class="card-h"><h2>2 · Pair / Recover</h2></div>
+      <p class="muted">Reset-challenge: recover access to your own device without the old password, and set a new 32-character one.</p>
+      <div class="row">
+        <button id="recoverBtn" class="btn primary" disabled>Recover access</button>
+      </div>
+      <div id="pwBox" class="pwbox hidden">
+        <label>New device password</label>
+        <code id="pwValue" class="pw"></code>
+        <div class="row">
+          <button id="copyPwBtn" class="btn small">Copy</button>
+          <button id="savePwBtn" class="btn small">Save…</button>
+        </div>
+      </div>
+      <details class="auth-existing">
+        <summary>I already have a password</summary>
+        <div class="row">
+          <input id="existingPw" class="inp" placeholder="32 characters" maxlength="64" />
+          <button id="authBtn" class="btn" disabled>Authenticate</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- 3. controls -->
+    <section class="card controls" id="controls">
+      <div class="card-h"><h2>3 · Controls</h2><span class="lock" id="lockBadge">locked</span></div>
+      <fieldset id="controlsFs" disabled>
+        <div class="ctl-row">
+          <span class="ctl-label">Front light</span>
+          <label class="switch"><input type="checkbox" id="lightToggle" /><span class="slider"></span></label>
+        </div>
+        <div class="ctl-row">
+          <span class="ctl-label">Brightness</span>
+          <input type="range" id="brightness" min="0" max="255" value="200" class="range" />
+          <span id="brightVal" class="val">200</span>
+        </div>
+        <div class="ctl-row stack">
+          <span class="ctl-label">Alarm</span>
+          <div class="row">
+            <button id="alarmArm" class="btn small">Arm</button>
+            <button id="alarmDisarm" class="btn small">Disarm</button>
+            <button id="alarmReport" class="btn small">Report</button>
+          </div>
+        </div>
+        <div class="ctl-row stack">
+          <span class="ctl-label">Device</span>
+          <div class="row">
+            <button id="infoBtn" class="btn small">Info</button>
+            <button id="disconnectBtn" class="btn small danger">Disconnect</button>
+          </div>
+        </div>
+        <pre id="infoOut" class="infoout hidden"></pre>
+      </fieldset>
+    </section>
+  </main>
+
+  <section class="logwrap">
+    <div class="log-h"><span>Log</span><button id="clearLog" class="btn tiny">clear</button></div>
+    <div id="log" class="log"></div>
+  </section>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

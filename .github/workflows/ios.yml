@@ -1,0 +1,100 @@
+# Builds, tests and packages the rehalo iOS app (SmartHalo 2) on GitHub's macOS runners (real Xcode).
+# Produces an UNSIGNED .ipa artifact, ready to sideload with SideStore or iLoader
+# (they re-sign it with your Apple ID on install).
+# A `v*` tag also publishes a GitHub Release with that .ipa and the notes in docs/releases/<tag>.md.
+name: iOS build
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']                 # path filters don't apply to tags: every release tag builds
+    paths: ['clients/ios/**', '.github/workflows/ios.yml']
+  pull_request:
+    paths: ['clients/ios/**']
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: macos-26            # Xcode 26: MapKit's cycling directions need Swift 6.2
+    defaults:
+      run:
+        working-directory: clients/ios
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag against the app version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version=$(grep -m1 'MARKETING_VERSION' project.yml | sed -E 's/.*"(.*)".*/\1/')
+          [ "v$version" = "$GITHUB_REF_NAME" ] || { echo "::error::Tag $GITHUB_REF_NAME, but project.yml says $version"; exit 1; }
+          test -f "../../docs/releases/$GITHUB_REF_NAME.md" || { echo "::error::docs/releases/$GITHUB_REF_NAME.md is missing"; exit 1; }
+
+      - name: Toolchain info
+        run: xcodebuild -version && swift --version
+
+      - name: Protocol unit tests (SH2Protocol, real CryptoKit/CommonCrypto)
+        working-directory: clients/ios/SH2Protocol
+        run: swift test
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate the Xcode project
+        run: xcodegen generate
+
+      - name: Archive for device (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project SmartHalo2.xcodeproj \
+            -scheme SmartHalo2 \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/SmartHalo2.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            archive
+
+      - name: Package the unsigned .ipa
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/SmartHalo2.xcarchive/Products/Applications/SmartHalo2.app"
+          test -d "$APP" || { echo "No .app found in the archive"; ls -R "$RUNNER_TEMP/SmartHalo2.xcarchive/Products" || true; exit 1; }
+          test -f "$APP/DemoRoute.gpx" || { echo "DemoRoute.gpx is not in the bundle"; exit 1; }
+          # M12: the Live Activity is embedded as a WidgetKit extension.
+          test -d "$APP/PlugIns/HaloLiveActivity.appex" || { echo "PlugIns/HaloLiveActivity.appex is missing"; ls -la "$APP" "$APP/PlugIns" || true; exit 1; }
+          /usr/libexec/PlistBuddy -c 'Print :NSSupportsLiveActivities' "$APP/Info.plist"
+          test -f "$APP/Assets.car" && /usr/libexec/PlistBuddy -c "Print :CFBundleIcons:CFBundlePrimaryIcon" "$APP/Info.plist" || { echo "The app icon (AppIcon) is missing"; exit 1; }
+          rm -rf "$RUNNER_TEMP/Payload" && mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R "$APP" "$RUNNER_TEMP/Payload/"
+          ( cd "$RUNNER_TEMP" && zip -qry rehalo-unsigned.ipa Payload )
+          mkdir -p artifacts && cp "$RUNNER_TEMP/rehalo-unsigned.ipa" artifacts/
+          echo "IPA:"; ls -la artifacts/
+
+      - name: Upload the .ipa as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rehalo-unsigned-ipa
+          path: clients/ios/artifacts/rehalo-unsigned.ipa
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the .ipa
+        uses: actions/download-artifact@v4
+        with:
+          name: rehalo-unsigned-ipa
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" rehalo-unsigned.ipa \
+            --title "rehalo ${GITHUB_REF_NAME#v}" \
+            --notes-file "docs/releases/$GITHUB_REF_NAME.md"

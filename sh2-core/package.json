@@ -1,0 +1,11 @@
+{
+  "name": "sh2-core",
+  "version": "0.1.0",
+  "description": "BLE protocol core for the SmartHalo 2 (open-source alternative)",
+  "type": "module",
+  "main": "src/index.mjs",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}

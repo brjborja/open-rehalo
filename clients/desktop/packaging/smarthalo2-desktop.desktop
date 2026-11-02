@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=rehalo Desktop
+Comment=Control & recovery tool for the SmartHalo 2 bike light
+# Edit Exec/Icon to the actual paths where you placed the AppImage and icon.
+Exec=/opt/rehalo/rehalo-Desktop.AppImage
+Icon=/opt/rehalo/rehalo-desktop.png
+Terminal=false
+Categories=Utility;
+StartupWMClass=rehalo Desktop

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>rehalo</title>
+  <meta name="description" content="rehalo is an independent, open-source iPhone app that lets you use your SmartHalo 2 bike light again, without the original app. No account and no company servers.">
+  <meta name="theme-color" content="#0B0D10">
+  <link rel="icon" href="assets/rehalo-symbol.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/unbounded-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+  <header class="bar">
+    <a class="bar-logo" href="#top"><img src="assets/rehalo-horizontal.svg" alt="rehalo" height="26"></a>
+    <a class="btn btn-small" href="https://github.com/brjborja/open-rehalo">GitHub</a>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <svg class="hero-mark" viewBox="17 17 166 166" aria-hidden="true">
+        <path class="hero-mark-ring" d="M167.61 81.88A70 70 0 1 1 118.12 32.39"/>
+        <circle class="hero-mark-spark" cx="149.5" cy="50.5" r="15"/>
+      </svg>
+      <div class="hero-copy">
+        <h1><span>A new app for your SmartHalo 2.</span> <em>No account or servers needed.</em></h1>
+        <p class="lead">rehalo is an independent, open-source app that lets you use the ring on your handlebars again, without the original app. It's on iPhone today, and an Android app is planned.</p>
+        <div class="actions">
+          <a class="btn" href="https://github.com/brjborja/open-rehalo">Follow on GitHub</a>
+          <a class="btn btn-ghost" href="#back">See what's back</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="story" aria-labelledby="story-title">
+      <h2 id="story-title" class="sr-only">What happened</h2>
+      <ol class="story-list">
+        <li class="reveal">
+          <time>November 2021</time>
+          <p>The company behind the ring ran out of cash and closed. The servers the devices relied on went with it.</p>
+        </li>
+        <li class="reveal">
+          <time>What was left</time>
+          <p>The front light and the alarm still worked. The rest needed the official app, and the app needed those servers.</p>
+        </li>
+        <li class="reveal">
+          <time>Afterwards</time>
+          <p>The firmware was published so a community could keep the devices going. People documented the API and took the ring apart. rehalo builds on that work.</p>
+        </li>
+        <li class="reveal">
+          <time>October 2026</time>
+          <p>rehalo started from that source code. The app was rebuilt around the ring's Bluetooth protocol, and it doesn't depend on any server that could shut down.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="chapters" id="back" aria-labelledby="back-title">
+      <div class="section-head reveal">
+        <p class="kicker">What's back</p>
+        <h2 id="back-title">Navigation, alarm, ride stats and alerts.</h2>
+        <p class="lead">Every animation below is the ring's own. They're ported from the firmware source and checked against it frame by frame. Long stretches of a ride are shortened here.</p>
+      </div>
+
+      <div class="chapter-grid">
+        <div class="stage" aria-hidden="true">
+          <div class="phone">
+            <div class="phone-screen" id="phone-screen">
+              <img src="assets/shots/07-navigating.webp" data-shot="nav" alt="" class="on" loading="eager">
+              <img src="assets/shots/03-route-on-map.webp" data-shot="compass" alt="" loading="lazy">
+              <img src="assets/shots/10-halo.webp" data-shot="alarm" alt="" loading="lazy">
+              <img src="assets/shots/11-halo-cards.webp" data-shot="cards" alt="" loading="lazy">
+              <img src="assets/shots/13-settings.webp" data-shot="call" alt="" loading="lazy">
+              <img src="assets/shots/14-settings-alerts.webp" data-shot="rain" alt="" loading="lazy">
+            </div>
+          </div>
+          <div class="stage-side">
+            <canvas class="stage-ring" id="stage-ring"></canvas>
+            <p class="stage-caption" id="stage-caption"></p>
+          </div>
+        </div>
+
+        <div class="steps">
+          <article class="step" data-ring="nav" data-shot="nav">
+            <span class="tag tag-back">Back</span>
+            <h3>Turn-by-turn on the ring</h3>
+            <p>Load a GPX route or search for a place. Near each turn an arc lights up on the side you'll turn, fills green from its centre as you get closer and blinks when it's time. The small display shows the street, and the whole ring pulses green when you arrive.</p>
+            <p class="fine">Go off route and an orange pointer leads you back.</p>
+          </article>
+          <article class="step" data-ring="compass" data-shot="compass">
+            <span class="tag tag-back">Back</span>
+            <h3>Or just point me there</h3>
+            <p>Compass mode skips the route. A pointer holds the direction of your destination and shifts from orange to green as you get closer. You pick the streets.</p>
+          </article>
+          <article class="step" data-ring="alarm" data-shot="alarm">
+            <span class="tag tag-back">Back</span>
+            <h3>It watches your bike</h3>
+            <p>Walk away and the Halo arms itself, then goes dark. Move the bike and orange arcs warn you off, then the alarm sounds and the ring strobes. Come back with your iPhone and it stands down. If your phone is dead, tap your five-beat code on the ring.</p>
+            <p class="fine">The app tells you how many times the alarm went off while you were away.</p>
+          </article>
+          <article class="step" data-ring="cards" data-shot="cards">
+            <span class="tag tag-back">Back</span>
+            <h3>Ride stats and tap shortcuts</h3>
+            <p>Clock, battery, speed, distance, ride time and average speed, one swipe apart on the ring. Short and long taps trigger the horn, the light or a quick reading.</p>
+          </article>
+          <article class="step" data-ring="call" data-shot="call">
+            <span class="tag tag-back">Back</span>
+            <h3>A call, without reaching for your phone</h3>
+            <p>The whole ring pulses blue and the display shows the call. One short tap silences it.</p>
+            <p class="fine">iOS doesn't share the caller's name with apps, so the ring can't show it. It works while you ride or navigate.</p>
+          </article>
+          <article class="step" data-ring="rain" data-shot="rain">
+            <span class="tag tag-new">New</span>
+            <h3>Rain warning</h3>
+            <p>The firmware has a storm icon that the official app never used. If rain is due within half an hour, the ring now pulses a deeper blue and shows that icon for about six seconds. It warns you once, and waits if you're about to turn.</p>
+            <p class="fine">Off by default. Forecasts come from Open-Meteo, with no key or account.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="better" aria-labelledby="better-title">
+      <div class="section-head reveal">
+        <p class="kicker">Better than it was</p>
+        <h2 id="better-title">New in rehalo.</h2>
+      </div>
+      <div class="bento">
+        <figure class="tile tile-tall reveal">
+          <img src="assets/shots/06-route-3d.webp" alt="A route drawn over 3D terrain in the rehalo app" loading="lazy">
+          <figcaption><strong>Fly the route first</strong> Terrain view with an animated flyover from start to finish.</figcaption>
+        </figure>
+        <figure class="tile tile-tall reveal">
+          <img src="assets/shots/09-lock-screen.webp" alt="Next turn and progress in a Live Activity on the iPhone Lock Screen" loading="lazy">
+          <figcaption><strong>On your Lock Screen</strong> Next turn, distance left and the light button, on the Lock Screen and in the Dynamic Island.</figcaption>
+        </figure>
+        <figure class="tile tile-tall reveal">
+          <img class="tile-fit" src="assets/shots/02-search.webp" alt="Recent routes and recent destinations in the rehalo search sheet" loading="lazy">
+          <figcaption><strong>One search for everything</strong> Places, saved routes and recent routes. Or touch and hold the map to drop a pin.</figcaption>
+        </figure>
+        <div class="tile tile-text reveal">
+          <strong>Take your ring back</strong>
+          <p>A guided wizard reclaims a Halo locked with a password only the old app knew, and your new password is backed up in your Keychain.</p>
+        </div>
+        <div class="tile tile-text reveal">
+          <strong>Try it without a ring</strong>
+          <p>Demo mode simulates the Halo and the ride, so you can explore everything first.</p>
+        </div>
+        <div class="tile tile-text reveal">
+          <strong>Gets you to the start</strong>
+          <p>If you're far from your route, rehalo offers to lead you to the start or to the nearest point on it.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="noserver" aria-labelledby="noserver-title">
+      <div class="section-head reveal">
+        <p class="kicker">No server to lose</p>
+        <h2 id="noserver-title">The ring connects straight to your phone over Bluetooth.</h2>
+      </div>
+
+      <div class="chain reveal" aria-hidden="true">
+        <div class="chain-row chain-then">
+          <span>Ring</span><i></i><span>Phone</span><i></i><span>Company servers</span>
+          <b>Then: stopped when the company closed</b>
+        </div>
+        <div class="chain-row chain-now">
+          <span>Ring</span><i></i><span>Phone</span>
+          <b>Now: direct Bluetooth</b>
+        </div>
+      </div>
+
+      <table class="deps reveal">
+        <caption class="sr-only">What rehalo connects to</caption>
+        <thead><tr><th scope="col">What</th><th scope="col">Goes through</th><th scope="col">Account needed</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Controlling the ring</th><td>Direct Bluetooth</td><td>None</td></tr>
+          <tr><th scope="row">Maps, search, directions</th><td>Apple Maps, so these need internet</td><td>None</td></tr>
+          <tr><th scope="row">Rain alerts</th><td>Open-Meteo, only if you turn them on; location rounded to about 1 km</td><td>None</td></tr>
+          <tr><th scope="row">Ride sync</th><td>Your own server, if you want one</td><td>Yours</td></tr>
+          <tr><th scope="row">The original company's servers</th><td>Never</td><td>None</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="open" aria-labelledby="open-title">
+      <div class="section-head reveal">
+        <p class="kicker">Status</p>
+        <h2 id="open-title">What works today.</h2>
+        <p class="lead">rehalo is new. It connects to a real ring and the app is built, but most features haven't been tested on real rides yet. Here's where each one stands.</p>
+      </div>
+
+      <div class="panel reveal">
+        <dl class="stats">
+          <div><dd>0.1</dd><dt>current version</dt></div>
+          <div><dd>0</dd><dt>company servers</dt></div>
+          <div><dd>MIT</dd><dt>licence</dt></div>
+        </dl>
+        <div class="status">
+          <div>
+            <h3><span class="led led-on"></span>Working with a real ring</h3>
+            <ul><li>Connecting to the Halo</li><li>The Bluetooth handshake</li><li>Reclaiming a ring</li></ul>
+          </div>
+          <div>
+            <h3><span class="led led-half"></span>Built, needs road testing</h3>
+            <ul><li>Navigation and compass</li><li>Alarm and tap code</li><li>Ring cards and shortcuts</li><li>Front light</li><li>Call and rain alerts</li></ul>
+          </div>
+          <div>
+            <h3><span class="led led-off"></span>Planned</h3>
+            <ul><li>Android app</li><li>App Store and Google Play releases</li><li>Ride recording and history</li><li>Strava and Apple Health</li><li>Home Screen widget</li><li>Ring editor with presets</li><li>Offline maps</li></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta" aria-labelledby="cta-title">
+      <canvas class="cta-ring" id="cta-ring" aria-hidden="true"></canvas>
+      <h2 id="cta-title">Early beta.<br><em>More features on the way.</em></h2>
+      <p class="lead">If you own a SmartHalo 2, tell us with the button below. We need testers on real rides.</p>
+      <div class="actions">
+        <a class="btn" href="https://github.com/brjborja/open-rehalo">Follow on GitHub</a>
+        <a class="btn btn-ghost" href="https://github.com/brjborja/open-rehalo/issues/new?title=I%20own%20a%20Halo">I own a Halo</a>
+      </div>
+    </section>
+
+    <section class="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">Good to know</h2>
+      <details>
+        <summary>Which devices does it work with?</summary>
+        <p>The SmartHalo 2 and an iPhone on iOS 17 or later. An Android app is planned. The first-generation SmartHalo is a different design and isn't supported.</p>
+      </details>
+      <details>
+        <summary>How do I install it?</summary>
+        <p>rehalo isn't on the App Store yet. For now it's installed by sideloading with your own Apple ID, using a tool such as SideStore.</p>
+      </details>
+      <details>
+        <summary>Can I reclaim a ring that was paired to the old app?</summary>
+        <p>Yes, that's what the recovery wizard is for. A quirk of the firmware means the ring has to reboot once, and if its battery won't run down that can mean opening the case to disconnect it.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <img src="assets/rehalo-horizontal.svg" alt="rehalo" height="22">
+    <p>Based on the work of the community: the released SmartHalo firmware, <a href="https://github.com/kperdlich/SmartHalo">kperdlich/SmartHalo</a>, <a href="https://github.com/aolde/smarthalo-api">aolde/smarthalo-api</a> and <a href="https://github.com/smarthalo-community/smarthalo-firmware">smarthalo-community/smarthalo-firmware</a>.</p>
+    <p>rehalo is an independent project, not affiliated with or endorsed by SmartHalo or CycleLabs. SmartHalo is used only to say which device this works with. For reviving your own device. No warranty.</p>
+    <p>Weather data by <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0).</p>
+  </footer>
+
+  <script src="firmware.js"></script>
+  <script src="ring.js"></script>
+</body>
+</html>

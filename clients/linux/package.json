@@ -1,0 +1,12 @@
+{
+  "name": "sh2-linux-client",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "BLE Linux client (BlueZ/D-Bus) for the SmartHalo 2: scanning and recovery/pairing",
+  "bin": { "sh2-scan": "bin/sh2-scan.mjs", "sh2-pair": "bin/sh2-pair.mjs" },
+  "dependencies": {
+    "node-ble": "^1.9.0",
+    "sh2-core": "file:../../sh2-core"
+  },
+  "license": "MIT"
+}

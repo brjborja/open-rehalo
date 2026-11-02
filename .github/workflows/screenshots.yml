@@ -1,0 +1,54 @@
+# Captures the website's screens with the app in demo mode, on the simulator (site/assets/shots).
+# Uploads the PNGs as an artifact (`gh run download <id> -n rehalo-screenshots`); the site uses 804 px WebP.
+name: App screenshots
+
+on:
+  workflow_dispatch: {}
+
+env:
+  DEVICE: iPhone 16 Pro
+
+jobs:
+  screenshots:
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: clients/ios
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate the Xcode project
+        run: xcodegen generate
+
+      - name: Prepare the simulator
+        run: |
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+          xcrun simctl ui "$DEVICE" appearance dark
+          xcrun simctl status_bar "$DEVICE" override --time 9:41 --batteryState charged --batteryLevel 100 \
+            --cellularMode active --cellularBars 4 --wifiBars 3
+          # Start of the demo route (Barcelona): without this the map opens at the default location.
+          xcrun simctl location "$DEVICE" set 41.3855,2.1630
+          xcrun simctl privacy "$DEVICE" grant location-always com.sh2.smarthalo2 || true
+
+      - name: Capture the screens
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project SmartHalo2.xcodeproj \
+            -scheme SmartHalo2 \
+            -destination "platform=iOS Simulator,name=$DEVICE" \
+            -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rehalo-screenshots
+          path: /tmp/rehalo-shots
+          if-no-files-found: warn

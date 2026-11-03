@@ -88,10 +88,8 @@ em { font-style: normal; color: var(--accent); }
 @media (min-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: min(100svh, 900px); } }
 .hero-copy { display: grid; gap: 20px; align-content: center; }
 h1 { font-size: clamp(2.1rem, 1.2rem + 4vw, 4.4rem); }
-/* Under 360px, "SmartHalo 2," on one line only fits a size smaller */
+/* Under 360px, "SmartHalo 2." on one line only fits a size smaller */
 @media (max-width: 359px) { h1 { font-size: 1.9rem; } }
-.hero-spec { color: var(--dim); font: 500 .85rem/1.5 var(--mono); font-variant-numeric: tabular-nums; }
-.hero-spec b { color: var(--text); font-weight: 600; }
 .hero-ring { margin: 0; display: grid; justify-items: center; gap: 10px; order: -1; }
 @media (min-width: 900px) { .hero-ring { order: 0; } }
 .hero-ring canvas { width: min(100%, 520px, 58svh); aspect-ratio: 1; }

@@ -329,8 +329,9 @@
 
   add('cta-ring', { state: 'almost' });
 
-  // Chapters: the step at the reading line drives the ring, the tally and the phone. On phones in
-  // portrait the stage fills the top half, so the line sits below it.
+  // Chapters: the step being read drives the ring, the tally and the phone. That's the one whose text
+  // shows most in the part of the screen the bar and, on phones in portrait, the stage leave free, so
+  // the lit text is always the one in view.
   const caption = document.getElementById('stage-caption');
   const stage = add('stage-ring', {
     state: 'nav',
@@ -350,18 +351,32 @@
   };
   if (steps.length) {
     activate(steps[0]);
-    // The side-by-side query from style.css; turning the phone switches layouts, so the line moves too.
+    // The side-by-side query from style.css: there the stage stands beside the text, not over it.
     const sideBySide = matchMedia('(min-width: 900px), (orientation: landscape) and (min-width: 600px)');
-    let observer;
-    const watch = () => {
-      observer?.disconnect();
-      observer = new IntersectionObserver((entries) => {
-        entries.forEach((e) => { if (e.isIntersecting) activate(e.target); });
-      }, { rootMargin: sideBySide.matches ? '-45% 0px -45% 0px' : '-72% 0px -26% 0px' });
-      steps.forEach((s) => observer.observe(s));
+    const bar = document.querySelector('.bar');
+    const stageBox = document.querySelector('.stage');
+    const shown = (step, top, bottom) => {
+      const first = step.firstElementChild.getBoundingClientRect();
+      const last = step.lastElementChild.getBoundingClientRect();
+      const seen = Math.min(bottom, last.bottom) - Math.max(top, first.top);
+      return Math.max(0, seen) / (last.bottom - first.top);
     };
-    watch();
-    sideBySide.addEventListener('change', watch);
+    let queued = false;
+    const pick = () => {
+      queued = false;
+      const top = Math.max(bar.getBoundingClientRect().bottom,
+        sideBySide.matches ? 0 : stageBox.getBoundingClientRect().bottom);
+      let best = null, most = 0;
+      steps.forEach((s) => {
+        const v = shown(s, top, innerHeight);
+        if (v > most + 0.01) { best = s; most = v; }
+      });
+      if (best) activate(best);
+    };
+    const queue = () => { if (!queued) { queued = true; requestAnimationFrame(pick); } };
+    addEventListener('scroll', queue, { passive: true });
+    addEventListener('resize', queue);
+    pick();
   }
 
   const reveal = new IntersectionObserver((entries) => {

@@ -102,8 +102,9 @@ h1 { font-size: clamp(2.3rem, 1.3rem + 5vw, 5rem); }
 /* Under 360px, "SmartHalo 2" on one line only fits a size smaller */
 @media (max-width: 359px) { h1 { font-size: 2.1rem; } }
 h1 span, h1 em { display: block; }
-.js h1 em { opacity: .14; transition: opacity .9s ease; }
-.js .lit h1 em { opacity: 1; }
+/* The spark lights the line: grey you can read, then the accent */
+.js h1 em { color: var(--dim); transition: color .9s ease; }
+.js .lit h1 em { color: var(--accent); }
 
 /* Story */
 .story { padding: clamp(40px, 10vw, 140px) var(--gutter); }
@@ -133,8 +134,9 @@ h1 span, h1 em { display: block; }
 .stage-caption { min-height: 3em; width: min(44vw, 240px); text-align: center; color: var(--dim); font: 500 .74rem/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
 .steps { position: relative; }
 .step { display: grid; align-content: end; gap: 12px; min-height: 72svh; padding-bottom: 7svh; }
-.js .step { opacity: .22; transition: opacity .4s ease; }
-.js .step.active { opacity: 1; }
+/* The steps not being read go grey, never below what reads well */
+.js .step { color: var(--dim); transition: color .4s ease; }
+.js .step.active { color: var(--text); }
 .tag { justify-self: start; padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
 .tag-back { background: var(--surface2); color: var(--text); }
 .tag-new { background: var(--accent); color: var(--on-accent); }

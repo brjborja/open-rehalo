@@ -24,16 +24,16 @@
         <p class="lead">rehalo is an independent, open-source app. Every animation here comes from the ring's own firmware, recorded frame by frame while it was fed the same Bluetooth bytes the app sends.</p>
         <p class="hero-spec"><b>24</b> LEDs · <b>128×64</b> display · a frame every <b>10&nbsp;ms</b></p>
       </div>
-      <figure class="hero-ring" aria-hidden="true">
-        <canvas id="hero-ring"></canvas>
-        <figcaption class="hero-caption"><b id="hero-mode">Navigation</b> <span id="hero-label"></span></figcaption>
-        <div class="hero-modes" id="hero-modes">
-          <span data-ring="nav" class="on">Navigation</span>
-          <span data-ring="compass">Compass</span>
-          <span data-ring="alarm">Alarm</span>
-          <span data-ring="cards">Ride stats</span>
-          <span data-ring="call">Calls</span>
-          <span data-ring="rain">Rain</span>
+      <figure class="hero-ring">
+        <canvas id="hero-ring" aria-hidden="true"></canvas>
+        <figcaption class="hero-caption" aria-hidden="true"><b id="hero-mode">Navigation</b> <span id="hero-label"></span></figcaption>
+        <div class="hero-modes" id="hero-modes" role="group" aria-label="Play a mode on the ring">
+          <button type="button" data-ring="nav" aria-pressed="true">Navigation</button>
+          <button type="button" data-ring="compass" aria-pressed="false">Compass</button>
+          <button type="button" data-ring="alarm" aria-pressed="false">Alarm</button>
+          <button type="button" data-ring="cards" aria-pressed="false">Ride stats</button>
+          <button type="button" data-ring="call" aria-pressed="false">Calls</button>
+          <button type="button" data-ring="rain" aria-pressed="false">Rain</button>
         </div>
       </figure>
     </section>

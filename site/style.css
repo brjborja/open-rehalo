@@ -100,8 +100,14 @@ h1 { font-size: clamp(2.1rem, 1.2rem + 4vw, 4.4rem); }
 .hero-caption b { color: var(--accent); font-weight: 600; }
 .hero-modes { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 /* The lit mode swaps at once: a fade would pass through dark text on half-lit lime */
-.hero-modes span { padding: 3px 10px; border-radius: 999px; background: var(--surface); color: var(--dim); font-size: .75rem; font-weight: 700; }
-.hero-modes span.on { background: var(--accent); color: var(--on-accent); }
+.hero-modes button {
+  min-height: 32px; padding: 0 12px; border: 0; border-radius: 999px;
+  background: var(--surface); color: var(--dim); font: 700 .78rem/1 var(--body); cursor: pointer;
+}
+.hero-modes button:hover { color: var(--text); background: var(--surface2); }
+.hero-modes button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hero-modes button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+@media (pointer: coarse) { .hero-modes { gap: 8px; } .hero-modes button { min-height: 40px; padding: 0 14px; } }
 
 /* Chapters: the stage sticks while the steps scroll past it */
 .chapters, .better, .connects, .open { padding: clamp(56px, 10vw, 130px) var(--gutter); max-width: 1240px; margin-inline: auto; }

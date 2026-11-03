@@ -316,20 +316,22 @@
     return ring;
   };
 
-  // The hero: every mode once, then the next, with its name and scene under the ring.
+  // The hero: every mode once, then the next, with its name and scene under the ring. A mode's button
+  // plays it from the start, and the round carries on from there.
   const heroMode = document.getElementById('hero-mode');
   const heroLabel = document.getElementById('hero-label');
-  const heroChips = [...document.querySelectorAll('#hero-modes span')];
-  add('hero-ring', {
-    state: heroChips[0].dataset.ring,
-    sequence: heroChips.map((c) => c.dataset.ring),
-    onClip: (state) => heroChips.forEach((c) => {
-      const on = c.dataset.ring === state;
-      c.classList.toggle('on', on);
-      if (on) heroMode.textContent = c.textContent;
+  const heroModes = [...document.querySelectorAll('#hero-modes button')];
+  const hero = add('hero-ring', {
+    state: heroModes[0].dataset.ring,
+    sequence: heroModes.map((b) => b.dataset.ring),
+    onClip: (state) => heroModes.forEach((b) => {
+      const on = b.dataset.ring === state;
+      b.setAttribute('aria-pressed', String(on));
+      if (on) heroMode.textContent = b.textContent;
     }),
     onLabel: (label) => { heroLabel.textContent = label; },
   });
+  heroModes.forEach((b) => b.addEventListener('click', () => hero.play(b.dataset.ring)));
 
   // Chapters: the step being read drives the ring, the tally and the phone. That's the one whose text
   // shows most in the part of the screen the bar and, on phones in portrait, the stage leave free, so

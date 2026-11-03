@@ -72,6 +72,11 @@ em { font-style: normal; color: var(--accent); }
 }
 .bar-logo img { height: 24px; width: auto; }
 .bar-logo { margin-right: auto; }
+/* Touch screens: a 44px target for the GitHub button, with the bar the same height */
+@media (pointer: coarse) {
+  .bar { padding-top: calc(7px + env(safe-area-inset-top, 0px)); padding-bottom: 7px; }
+  .btn-small { min-height: 44px; }
+}
 
 /* Hero */
 .hero {
@@ -94,6 +99,8 @@ em { font-style: normal; color: var(--accent); }
 .hero-copy { position: relative; display: grid; gap: 22px; max-width: 700px; }
 @media (max-width: 899px) { .hero { align-content: center; gap: 28px; } }
 h1 { font-size: clamp(2.3rem, 1.3rem + 5vw, 5rem); }
+/* Under 360px, "SmartHalo 2" on one line only fits a size smaller */
+@media (max-width: 359px) { h1 { font-size: 2.1rem; } }
 h1 span, h1 em { display: block; }
 .js h1 em { opacity: .14; transition: opacity .9s ease; }
 .js .lit h1 em { opacity: 1; }
@@ -113,8 +120,10 @@ h1 span, h1 em { display: block; }
   display: flex; justify-content: center; align-items: center; gap: 16px;
   height: 44svh; min-height: 300px;
   margin-inline: calc(var(--gutter) * -1);
-  background: linear-gradient(var(--bg) 88%, transparent);
+  background: var(--bg);
 }
+/* The fade hangs below the stage, so a step scrolling under it never shows beside the phone */
+.stage::after { content: ""; position: absolute; inset: 100% 0 auto; height: 28px; background: linear-gradient(var(--bg), transparent); pointer-events: none; }
 .phone { height: 92%; aspect-ratio: 402 / 874; padding: 5px; border-radius: 26px; background: #000; box-shadow: 0 0 0 1px var(--stroke); }
 .phone-screen { position: relative; height: 100%; overflow: hidden; border-radius: 21px; background: var(--surface); }
 .phone-screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .45s ease; }
@@ -130,15 +139,23 @@ h1 span, h1 em { display: block; }
 .tag-back { background: var(--surface2); color: var(--text); }
 .tag-new { background: var(--accent); color: var(--on-accent); }
 
-@media (min-width: 900px) {
+/* Wide screens and phones in landscape: steps on the left, stage on the right. ring.js uses the same query. */
+@media (min-width: 900px), (orientation: landscape) and (min-width: 600px) {
   .chapter-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 56px; }
   .stage { order: 2; top: 0; height: 100svh; margin: 0; background: none; gap: 32px; }
+  .stage::after { content: none; }
   .phone { height: min(76svh, 720px); padding: 7px; border-radius: 38px; }
   .phone-screen { border-radius: 31px; }
   .stage-ring { width: min(23vw, 300px); }
   .stage-caption { font-size: .82rem; width: min(23vw, 300px); }
   .step { align-content: center; min-height: 100svh; padding-bottom: 0; }
   h3 { font-size: 1.6rem; }
+}
+/* Landscape phones: the bar takes a bigger share of the height, so the stage and steps start below it */
+@media (orientation: landscape) and (min-width: 600px) and (max-height: 500px) {
+  .stage { top: 56px; height: calc(100svh - 56px); }
+  .phone { height: 86%; }
+  .step { padding-top: 56px; }
 }
 
 /* Better */
@@ -166,6 +183,17 @@ h1 span, h1 em { display: block; }
 .chain-now i { background: repeating-linear-gradient(90deg, var(--accent) 0 8px, transparent 8px 16px); background-size: 16px 2px; animation: flow 1s linear infinite; }
 .chain-now b { color: var(--accent); }
 @keyframes flow { to { background-position-x: 16px; } }
+/* Narrow phones: the two chains stand up side by side instead of wrapping */
+@media (max-width: 479px) {
+  .chain { grid-template-columns: 1fr 1fr; align-items: start; }
+  .chain-row { flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px; }
+  .chain-row span { white-space: normal; }
+  .chain-row i { flex: none; width: 2px; min-width: 0; height: 18px; margin-left: 18px; }
+  .chain-row b { flex-basis: auto; margin-top: 8px; }
+  .chain-then i { background: repeating-linear-gradient(180deg, var(--stroke) 0 4px, transparent 4px 8px); }
+  .chain-now i { background: repeating-linear-gradient(180deg, var(--accent) 0 4px, transparent 4px 8px); background-size: 2px 8px; animation-name: flow-down; }
+}
+@keyframes flow-down { to { background-position-y: 8px; } }
 
 .deps { width: 100%; border-collapse: collapse; font-size: .95rem; }
 .deps th, .deps td { padding: 12px 12px 12px 0; text-align: left; vertical-align: top; border-top: 1px solid var(--stroke); }
@@ -173,12 +201,20 @@ h1 span, h1 em { display: block; }
 .deps tbody th { font-weight: 600; }
 .deps td { color: var(--dim); }
 .deps td:last-child, .deps th:last-child { padding-right: 0; white-space: nowrap; }
-@media (max-width: 599px) { .deps td:last-child, .deps thead th:last-child { display: none; } }
+/* Phones: each row becomes a two-column grid and the account moves under "goes through" */
+@media (max-width: 599px) {
+  .deps tr { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1fr); column-gap: 12px; padding: 12px 0; border-top: 1px solid var(--stroke); }
+  .deps thead tr { padding-top: 0; border-top: 0; }
+  .deps th, .deps td { padding: 0; border: 0; }
+  .deps thead th:last-child { display: none; }
+  .deps td:last-child { display: block; grid-column: 2; margin-top: 2px; font-size: .85rem; }
+  .deps td:last-child::before { content: "Account: "; }
+}
 
 /* Status panel */
 .panel { background: var(--surface); box-shadow: inset 0 0 0 1px var(--stroke); border-radius: var(--radius); padding: clamp(18px, 3vw, 36px); display: grid; gap: 32px; }
 .stats { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.stats div { display: flex; flex-direction: column-reverse; }
+.stats div { display: flex; flex-direction: column; }
 .stats dd { margin: 0; font: 800 clamp(1.5rem, 1.2rem + 2vw, 2.75rem)/1.1 var(--display); letter-spacing: -.03em; color: var(--accent); }
 .stats dt { color: var(--dim); font-size: .85rem; }
 .status { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 24px; }

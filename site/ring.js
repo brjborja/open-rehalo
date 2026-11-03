@@ -273,8 +273,8 @@
 
   add('cta-ring', { state: 'almost' });
 
-  // Chapters: the step at the reading line drives the ring, the tally and the phone. On phones the
-  // stage fills the top half, so the line sits below it.
+  // Chapters: the step at the reading line drives the ring, the tally and the phone. On phones in
+  // portrait the stage fills the top half, so the line sits below it.
   const caption = document.getElementById('stage-caption');
   const stage = add('stage-ring', {
     state: 'nav',
@@ -294,10 +294,18 @@
   };
   if (steps.length) {
     activate(steps[0]);
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) activate(e.target); });
-    }, { rootMargin: matchMedia('(min-width: 900px)').matches ? '-45% 0px -45% 0px' : '-72% 0px -26% 0px' });
-    steps.forEach((s) => observer.observe(s));
+    // The side-by-side query from style.css; turning the phone switches layouts, so the line moves too.
+    const sideBySide = matchMedia('(min-width: 900px), (orientation: landscape) and (min-width: 600px)');
+    let observer;
+    const watch = () => {
+      observer?.disconnect();
+      observer = new IntersectionObserver((entries) => {
+        entries.forEach((e) => { if (e.isIntersecting) activate(e.target); });
+      }, { rootMargin: sideBySide.matches ? '-45% 0px -45% 0px' : '-72% 0px -26% 0px' });
+      steps.forEach((s) => observer.observe(s));
+    };
+    watch();
+    sideBySide.addEventListener('change', watch);
   }
 
   const reveal = new IntersectionObserver((entries) => {

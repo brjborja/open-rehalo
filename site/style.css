@@ -21,6 +21,7 @@
   --gutter: max(16px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   --display: "Unbounded", system-ui, sans-serif;
   --body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 @media (min-width: 720px) { :root { --gutter: max(40px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); } }
 
@@ -78,43 +79,33 @@ em { font-style: normal; color: var(--accent); }
   .btn-small { min-height: 44px; }
 }
 
-/* Hero */
+/* Hero: the ring itself, going through every mode. On phones it comes first. */
 .hero {
-  position: relative;
-  min-height: min(100svh, 880px);
-  display: grid;
-  align-items: center;
-  padding: 96px var(--gutter) 56px;
-  overflow: clip;
+  display: grid; gap: clamp(20px, 4vw, 40px); align-items: center;
+  max-width: 1240px; margin-inline: auto;
+  padding: 88px var(--gutter) clamp(40px, 7vw, 80px);
 }
-.hero-mark { width: min(46vw, 30svh); aspect-ratio: 1; overflow: visible; }
-.hero-mark-ring { fill: none; stroke: var(--text); stroke-width: 26; stroke-linecap: round; transition: opacity 1.1s ease .15s; }
-.hero-mark-spark { fill: var(--accent); filter: drop-shadow(0 0 7px var(--accent)); transition: opacity .7s ease; }
-.js .hero-mark-ring { opacity: .1; }
-.js .hero-mark-spark { opacity: 0; }
-.js .lit .hero-mark-ring, .js .lit .hero-mark-spark { opacity: 1; }
-@media (min-width: 900px) {
-  .hero-mark { position: absolute; width: min(33vw, 62svh); right: 7vw; top: 50%; translate: 0 -50%; }
-}
-.hero-copy { position: relative; display: grid; gap: 22px; max-width: 700px; }
-@media (max-width: 899px) { .hero { align-content: center; gap: 28px; } }
-h1 { font-size: clamp(2.3rem, 1.3rem + 5vw, 5rem); }
-/* Under 360px, "SmartHalo 2" on one line only fits a size smaller */
-@media (max-width: 359px) { h1 { font-size: 2.1rem; } }
-h1 span, h1 em { display: block; }
-/* The spark lights the line: grey you can read, then the accent */
-.js h1 em { color: var(--dim); transition: color .9s ease; }
-.js .lit h1 em { color: var(--accent); }
-
-/* Story */
-.story { padding: clamp(40px, 10vw, 140px) var(--gutter); }
-.story-list { list-style: none; margin: 0 auto; padding: 0; max-width: 900px; display: grid; gap: clamp(40px, 8vw, 96px); }
-.story-list time { display: block; color: var(--dim); font-size: .85rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
-.story-list p { font-size: clamp(1.3rem, 1.05rem + 1.3vw, 2.1rem); line-height: 1.32; letter-spacing: -.01em; }
-.story-list strong { color: var(--accent); font-weight: 600; }
+@media (min-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: min(100svh, 900px); } }
+.hero-copy { display: grid; gap: 20px; align-content: center; }
+h1 { font-size: clamp(2.1rem, 1.2rem + 4vw, 4.4rem); }
+/* Under 360px, "SmartHalo 2," on one line only fits a size smaller */
+@media (max-width: 359px) { h1 { font-size: 1.9rem; } }
+.hero-spec { color: var(--dim); font: 500 .85rem/1.5 var(--mono); font-variant-numeric: tabular-nums; }
+.hero-spec b { color: var(--text); font-weight: 600; }
+.hero-ring { margin: 0; display: grid; justify-items: center; gap: 10px; order: -1; }
+@media (min-width: 900px) { .hero-ring { order: 0; } }
+.hero-ring canvas { width: min(100%, 520px, 58svh); aspect-ratio: 1; }
+/* Two lines kept for the caption, so a long scene doesn't push the modes down */
+.hero-caption { display: flex; flex-wrap: wrap; align-content: start; justify-content: center; gap: 2px 10px; min-height: 2.8em; color: var(--dim); font: 500 .85rem/1.4 var(--mono); text-align: center; }
+.hero-caption b { color: var(--accent); font-weight: 600; }
+.hero-modes { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+/* The lit mode swaps at once: a fade would pass through dark text on half-lit lime */
+.hero-modes span { padding: 3px 10px; border-radius: 999px; background: var(--surface); color: var(--dim); font-size: .75rem; font-weight: 700; }
+.hero-modes span.on { background: var(--accent); color: var(--on-accent); }
 
 /* Chapters: the stage sticks while the steps scroll past it */
-.chapters, .better, .noserver, .open { padding: clamp(56px, 10vw, 130px) var(--gutter); max-width: 1240px; margin-inline: auto; }
+.chapters, .better, .connects, .open { padding: clamp(56px, 10vw, 130px) var(--gutter); max-width: 1240px; margin-inline: auto; }
+.chapters .section-head { margin-bottom: 0; }
 .chapter-grid { display: grid; grid-template-columns: 1fr; }
 .stage {
   position: sticky; top: 56px; z-index: 2;
@@ -131,14 +122,13 @@ h1 span, h1 em { display: block; }
 .phone-screen img.on { opacity: 1; }
 .stage-side { display: grid; justify-items: center; gap: 6px; }
 .stage-ring { width: min(44vw, 30svh); aspect-ratio: 1; }
-.stage-caption { min-height: 3em; width: min(44vw, 240px); text-align: center; color: var(--dim); font: 500 .74rem/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+.stage-caption { min-height: 3em; width: min(44vw, 240px); text-align: center; color: var(--dim); font: 500 .74rem/1.4 var(--mono); font-variant-numeric: tabular-nums; }
 .steps { position: relative; }
 .step { display: grid; align-content: end; gap: 12px; min-height: 72svh; padding-bottom: 7svh; }
 /* The steps not being read go grey, never below what reads well */
 .js .step { color: var(--dim); transition: color .4s ease; }
 .js .step.active { color: var(--text); }
 .tag { justify-self: start; padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
-.tag-back { background: var(--surface2); color: var(--text); }
 .tag-new { background: var(--accent); color: var(--on-accent); }
 
 /* Wide screens and phones in landscape: steps on the left, stage on the right. ring.js uses the same query. */
@@ -170,33 +160,7 @@ h1 span, h1 em { display: block; }
 .tile figcaption strong, .tile-text strong { display: block; color: var(--text); font-size: 1.05rem; }
 .tile-text { padding: 20px 18px; color: var(--dim); display: grid; gap: 6px; align-content: start; }
 
-/* No server */
-.chain { display: grid; gap: 14px; margin-bottom: 36px; }
-.chain-row {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px;
-  padding: 18px; border-radius: var(--radius);
-  background: var(--surface); box-shadow: inset 0 0 0 1px var(--stroke);
-}
-.chain-row span { padding: 6px 12px; border-radius: 10px; background: var(--surface2); font-weight: 600; font-size: .95rem; white-space: nowrap; }
-.chain-row b { flex-basis: 100%; color: var(--dim); font-weight: 500; font-size: .9rem; }
-.chain-row i { flex: 1 1 24px; min-width: 24px; height: 2px; }
-.chain-then i { background: repeating-linear-gradient(90deg, var(--stroke) 0 6px, transparent 6px 12px); }
-.chain-then span:last-of-type { color: var(--dim); text-decoration: line-through; }
-.chain-now i { background: repeating-linear-gradient(90deg, var(--accent) 0 8px, transparent 8px 16px); background-size: 16px 2px; animation: flow 1s linear infinite; }
-.chain-now b { color: var(--accent); }
-@keyframes flow { to { background-position-x: 16px; } }
-/* Narrow phones: the two chains stand up side by side instead of wrapping */
-@media (max-width: 479px) {
-  .chain { grid-template-columns: 1fr 1fr; align-items: start; }
-  .chain-row { flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px; }
-  .chain-row span { white-space: normal; }
-  .chain-row i { flex: none; width: 2px; min-width: 0; height: 18px; margin-left: 18px; }
-  .chain-row b { flex-basis: auto; margin-top: 8px; }
-  .chain-then i { background: repeating-linear-gradient(180deg, var(--stroke) 0 4px, transparent 4px 8px); }
-  .chain-now i { background: repeating-linear-gradient(180deg, var(--accent) 0 4px, transparent 4px 8px); background-size: 2px 8px; animation-name: flow-down; }
-}
-@keyframes flow-down { to { background-position-y: 8px; } }
-
+/* What it connects to */
 .deps { width: 100%; border-collapse: collapse; font-size: .95rem; }
 .deps th, .deps td { padding: 12px 12px 12px 0; text-align: left; vertical-align: top; border-top: 1px solid var(--stroke); }
 .deps thead th { border-top: 0; color: var(--dim); font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
@@ -214,11 +178,7 @@ h1 span, h1 em { display: block; }
 }
 
 /* Status panel */
-.panel { background: var(--surface); box-shadow: inset 0 0 0 1px var(--stroke); border-radius: var(--radius); padding: clamp(18px, 3vw, 36px); display: grid; gap: 32px; }
-.stats { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.stats div { display: flex; flex-direction: column; }
-.stats dd { margin: 0; font: 800 clamp(1.5rem, 1.2rem + 2vw, 2.75rem)/1.1 var(--display); letter-spacing: -.03em; color: var(--accent); }
-.stats dt { color: var(--dim); font-size: .85rem; }
+.panel { background: var(--surface); box-shadow: inset 0 0 0 1px var(--stroke); border-radius: var(--radius); padding: clamp(18px, 3vw, 36px); }
 .status { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 24px; }
 .status h3 { display: flex; align-items: center; gap: 10px; font-size: 1rem; margin-bottom: 10px; }
 .status ul { margin: 0; padding: 0; list-style: none; color: var(--dim); display: grid; gap: 4px; }
@@ -227,10 +187,14 @@ h1 span, h1 em { display: block; }
 .led-half { background: linear-gradient(90deg, var(--warn) 50%, var(--surface2) 50%); box-shadow: 0 0 0 1px var(--warn); }
 .led-off { box-shadow: inset 0 0 0 2px var(--dim); }
 
-/* CTA */
-.cta { display: grid; justify-items: center; text-align: center; gap: 20px; padding: clamp(56px, 10vw, 120px) var(--gutter); }
-.cta-ring { width: min(64vw, 280px); aspect-ratio: 1; }
-.cta .actions { justify-content: center; }
+/* Testers wanted */
+.ask {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1240px; margin: 0 auto; padding: 28px var(--gutter);
+  border-block: 1px solid var(--stroke);
+}
+.ask p { color: var(--dim); max-width: 44em; }
+.ask strong { color: var(--text); }
 
 /* FAQ, footer */
 .faq { max-width: 780px; margin-inline: auto; padding: 32px var(--gutter) 72px; }

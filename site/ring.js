@@ -2,12 +2,10 @@
 // the firmware itself, sent the bytes the app sends (SH2Protocol: NavDirector, CompassDirector,
 // DeviceController), with the long stretches of a ride cut out. Each LED is drawn as the light its
 // driver gives off, the display as the OLED's own memory.
-// The spark is the rehalo mark and the tally is scroll progress: neither exists on the device.
+// The tally is scroll progress: it doesn't exist on the device.
 (() => {
   const CLIPS = window.HALO_CLIPS;
   const LED_COUNT = 24;
-  const SPARK = 3;                                // the mark's 45° position
-  const LIME = [208, 255, 81];                    // the brand's lime, as the LED driver's input
 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -99,17 +97,9 @@
     return decoded[id];
   }
 
-  // The closing image: every LED but one, lit by the page rather than the firmware.
-  const almost = (t) => {
-    const leds = new Uint8Array(LED_COUNT * 3);
-    for (let k = 0; k < LED_COUNT; k++) leds.set(LIME, k * 3);
-    const a = 0.12 + 0.5 * (0.5 - 0.5 * Math.cos((t / 2600) * Math.PI * 2));
-    leds.set(LIME.map((c) => Math.round(c * a)), SPARK * 3);
-    return leds;
-  };
-
   class Ring {
-    constructor(canvas, { state, showTally = false, onLabel } = {}) {
+    // `sequence`: clips to play once each, in turn, instead of looping one. `onClip` hears each change.
+    constructor(canvas, { state, showTally = false, onLabel, onClip, sequence } = {}) {
       this.canvas = canvas;
       this.ctx = canvas.getContext('2d');
       this.oled = document.createElement('canvas');
@@ -117,6 +107,8 @@
       this.oled.height = 256;
       this.showTally = showTally;
       this.onLabel = onLabel;
+      this.onClip = onClip;
+      this.sequence = sequence;
       this.tally = 0;
       this.shown = 0;
       this.visible = false;
@@ -131,13 +123,14 @@
 
     play(state) {
       this.state = state;
-      this.clip = state === 'almost' ? null : clip(state);
+      this.clip = clip(state);
       this.startedAt = performance.now();
       this.label = null;
+      if (this.onClip) this.onClip(state);
       if (reduceMotion) this.still();
     }
 
-    still() { this.render(this.clip ? this.clip.still : 650); }
+    still() { this.render(this.clip.still); }
 
     resize() {
       const ratio = Math.min(devicePixelRatio || 1, 2);
@@ -148,14 +141,15 @@
       if (reduceMotion) this.still();
     }
 
-    tick(now) { this.render(now - this.startedAt); }
+    tick(now) {
+      if (this.sequence && now - this.startedAt >= this.clip.length) {
+        this.play(this.sequence[(this.sequence.indexOf(this.state) + 1) % this.sequence.length]);
+      }
+      this.render(now - this.startedAt);
+    }
 
     render(ms) {
       const c = this.clip;
-      if (!c) {
-        this.paint(almost(ms), null, 0);
-        return;
-      }
       const t = ms % c.length;
       const segment = c.segments.find(([, at, length]) => t < at + length);
       if (segment[0] !== this.label) {
@@ -322,12 +316,20 @@
     return ring;
   };
 
-  // The hero: the brand mark starts dim, then the spark lights it.
-  const heroSection = document.querySelector('.hero');
-  if (reduceMotion) heroSection.classList.add('lit');
-  else setTimeout(() => heroSection.classList.add('lit'), 900);
-
-  add('cta-ring', { state: 'almost' });
+  // The hero: every mode once, then the next, with its name and scene under the ring.
+  const heroMode = document.getElementById('hero-mode');
+  const heroLabel = document.getElementById('hero-label');
+  const heroChips = [...document.querySelectorAll('#hero-modes span')];
+  add('hero-ring', {
+    state: heroChips[0].dataset.ring,
+    sequence: heroChips.map((c) => c.dataset.ring),
+    onClip: (state) => heroChips.forEach((c) => {
+      const on = c.dataset.ring === state;
+      c.classList.toggle('on', on);
+      if (on) heroMode.textContent = c.textContent;
+    }),
+    onLabel: (label) => { heroLabel.textContent = label; },
+  });
 
   // Chapters: the step being read drives the ring, the tally and the phone. That's the one whose text
   // shows most in the part of the screen the bar and, on phones in portrait, the stage leave free, so

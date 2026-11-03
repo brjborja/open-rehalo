@@ -1,164 +1,120 @@
-// Scenarios and canvas for the ring. The frames come from firmware.js, a verified port of the ring's
-// own animations. Each scenario plays what the app sends the ring (SH2Protocol: NavDirector,
-// CompassDirector, Commands.notification), with the long stretches of a ride shortened.
+// The Halo from above, and what it shows in each chapter. The frames come from clips.js: recorded from
+// the firmware itself, sent the bytes the app sends (SH2Protocol: NavDirector, CompassDirector,
+// DeviceController), with the long stretches of a ride cut out. Each LED is drawn as the light its
+// driver gives off, the display as the OLED's own memory.
 // The spark is the rehalo mark and the tally is scroll progress: neither exists on the device.
 (() => {
-  const FW = window.SHFirmware;
-  const { hsv, LED_COUNT, RGB_LED_COUNT } = FW;
+  const CLIPS = window.HALO_CLIPS;
+  const LED_COUNT = 24;
   const SPARK = 3;                                // the mark's 45° position
-  const LIME = [198, 255, 61];
-  const TICK_MS = 10;
-
-  const GREEN = hsv(67, 255, 255);                // NavColour.turn
-  const OFF_PATH = hsv(30, 255, 255);             // NavColour.offPath
-  const WHITE = hsv(0, 0, 255);
-  const BLANK = hsv(0, 0, 0);
-  const CALL = hsv(143, 219, 198);                // Commands.incomingCall
-  const RAIN = hsv(170, 220, 255);                // Commands.rainAlert
-  const compassColour = (p) => hsv(17 + Math.trunc((p / 100) * 50), 255, 255);   // NavColour.progress
+  const LIME = [208, 255, 81];                    // the brand's lime, as the LED driver's input
 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const scenario = (segments, stillAt = 0) => {
-    let start = 0;
-    segments.forEach((s) => { s.start = start; start += s.ticks; });
-    return { segments, length: start, stillAt };
-  };
-  const dark = (ticks, label = '') => ({ ticks, label });
+  // The LED driver (stm firmware, HaloLedsDriver.c): its gamma table, and the value under which it
+  // drops the LED to a quarter of the current and stretches the value over the table.
+  const GAMMA = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5,
+    5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
+    17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25, 25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
+    37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50, 51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
+    69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89, 90, 92, 93, 95, 96, 98, 99, 101, 102, 104, 105, 107, 109, 110, 112, 114,
+    115, 117, 119, 120, 122, 124, 126, 127, 129, 131, 133, 135, 137, 138, 140, 142, 144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 167, 169, 171, 173, 175,
+    177, 180, 182, 184, 186, 189, 191, 193, 196, 198, 200, 203, 205, 208, 210, 213, 215, 218, 220, 223, 225, 228, 231, 233, 236, 239, 241, 244, 247, 249, 252, 255];
+  const THRESHOLD = 149;
+  // Light out of a channel, 0…1. Under the threshold green and blue use a lower table at that current to
+  // match red: the light they give is red's, which is what this follows.
+  const LIGHT = GAMMA.map((_, v) => (v >= THRESHOLD ? GAMMA[v] / 255 : GAMMA[Math.floor((v * 255) / THRESHOLD)] / 1020));
+  const encode = (x) => (x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055);
+  const EXPOSURE = 1.35;
 
-  const turn = { colour: GREEN, backgroundColour: WHITE, angle: 90, width: 105, repeat: 0 };
-  const turnFixes = [[12, 86], [29, 74], [46, 62], [63, 50], [80, 35]].map(([progress, metres], i, all) => ({
-    ticks: 100,
-    label: `Right turn in ${metres} m`,
-    draw: (leds, t) => FW.angleBackground(leds, t, {
-      ...turn, progress, gap: progress - (i ? all[i - 1][0] : 0), backgroundReady: true,
-    }),
-  }));
-
-  const pointerSteps = (steps) => steps.map(({ heading, gap, colour, ticks, label }) => ({
-    ticks,
-    label,
-    draw: (leds, t) => FW.pointer(leds, t, { heading: heading & 0xffff, headingGap: gap, colour }),
-  }));
-
-  const arrival = [
-    {
-      ticks: 50,
-      label: 'Arrived',
-      draw: (leds, t) => FW.angleBackground(leds, t, { ...turn, angle: 0, width: 360, progress: 0, gap: 0 }),
-    },
-    {
-      ticks: 290,
-      label: 'Arrived',
-      draw: (leds, t) => FW.angleBackground(leds, t, {
-        ...turn, angle: 0, width: 360, progress: 100, gap: 100, backgroundReady: true,
-      }),
-    },
-  ];
-
-  const notification = (colour, repeat) => (leds, t) => FW.angle(leds, t, {
-    colour, backgroundColour: BLANK, angle: 0, width: 360, progress: 100, gap: 100, repeat, backgroundReady: true,
-  });
-
-  const CLOCK = { hour: 10, minute: 10, hourHsv: hsv(0, 0, 220), minuteHsv: CALL, intro: true };
-  const swipe = () => ({ ticks: 22, label: 'Next card', draw: (leds, t) => FW.swipe(leds, t, true, true) });
-
-  const SCENARIOS = {
-    nav: scenario([
-      { ticks: 108, label: 'Route starts', draw: (leds, t) => FW.angleIntro(leds, t) },
-      {
-        ticks: 50,
-        label: 'Right turn in 95 m',
-        draw: (leds, t) => FW.angleBackground(leds, t, { ...turn, progress: 0, gap: 0 }),
-      },
-      ...turnFixes,
-      {
-        ticks: 230,
-        label: 'Turn right now',
-        draw: (leds, t) => FW.angleBackground(leds, t, { ...turn, progress: 100, gap: 20, backgroundReady: true }),
-      },
-      dark(40, 'Riding'),
-      ...pointerSteps([
-        { heading: -120, gap: 0, colour: OFF_PATH, ticks: 130, label: 'Off route: pointing back' },
-        { heading: -70, gap: 50, colour: OFF_PATH, ticks: 110, label: 'Off route: pointing back' },
-        { heading: -20, gap: 50, colour: OFF_PATH, ticks: 110, label: 'Off route: pointing back' },
-      ]),
-      dark(40, 'Back on route'),
-      ...arrival,
-      dark(70),
-    ], 420),
-
-    compass: scenario([
-      {
-        ticks: 170,
-        label: 'Ride to calibrate',
-        draw: (leds, t) => FW.pointer(leds, t, { heading: 0, headingGap: 0, colour: compassColour(0), standby: true }),
-      },
-      ...pointerSteps([40, -15, 25, -30, 10, -20, 5].map((heading, i, all) => ({
-        heading,
-        gap: heading - (i ? all[i - 1] : 0),
-        colour: compassColour((i + 1) * 14),
-        ticks: 130,
-        label: `Destination ${(1.4 - i * 0.2).toFixed(1)} km away`,
-      }))),
-      dark(60),
-    ], 700),
-
-    alarm: scenario([
-      { ticks: 101, label: 'Arming', draw: (leds, t) => FW.alarmSettingChange(leds, t, true) },
-      dark(90, 'Armed: the ring stays dark'),
-      { ticks: 200, label: 'Bike moved: warning', draw: (leds, t) => FW.alarmStateChange(leds, t, 33) },
-      { ticks: 200, label: 'Still moving: warning', draw: (leds, t) => FW.alarmStateChange(leds, t, 66) },
-      { ticks: 400, label: 'Alarm sounding', draw: (leds, t) => FW.alarmStateChange(leds, t, 100) },
-      { ticks: 101, label: 'iPhone is back: disarmed', draw: (leds, t) => FW.alarmSettingChange(leds, t, false) },
-      dark(70),
-    ], 340),
-
-    cards: scenario([
-      swipe(),
-      { ticks: 340, label: 'Clock', draw: (leds, t) => FW.clock(leds, t, CLOCK) },
-      swipe(),
-      { ticks: 300, label: 'Battery 80%', draw: (leds, t) => FW.battery(leds, t, 80) },
-      swipe(),
-      { ticks: 150, label: 'Speed 25 km/h', draw: (leds, t) => FW.speedometer(leds, t, { percentage: 62, gap: 62 }) },
-      { ticks: 150, label: 'Speed 20 km/h', draw: (leds, t) => FW.speedometer(leds, t, { percentage: 50, gap: -12 }) },
-      dark(30),
-      { ticks: 40, label: 'Tap: short', draw: (leds) => FW.taps(leds, 0b10, 1, true) },
-      { ticks: 80, label: 'Tap: short, long', draw: (leds) => FW.taps(leds, 0b10, 2, true) },
-      dark(60),
-    ], 500),
-
-    call: scenario([
-      { ticks: 560, label: 'Incoming call: pulses for about 30 s', draw: notification(CALL, 60) },
-      dark(90),
-    ], 75),
-
-    rain: scenario([
-      { ticks: 625, label: 'Rain in 20 min', draw: notification(RAIN, 10) },
-      dark(110),
-    ], 75),
-
-    // The closing image: every LED but one.
-    almost: scenario([{
-      ticks: 1e9,
-      label: '',
-      draw: (leds, t) => {
-        for (let k = 0; k < LED_COUNT; k++) leds.set(LIME, k * 3);
-        spark(leds, t, 0.12, 0.5);
-      },
-    }], 100),
+  const bytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const varint = (b, p) => {
+    let v = 0;
+    for (let shift = 0; ; shift += 7) {
+      const x = b[p.i++];
+      v += (x & 0x7f) * 2 ** shift;
+      if (x < 0x80) return v;
+    }
   };
 
-  function spark(leds, t, floor = 0.7, range = 0.3) {
-    const a = floor + range * (0.5 - 0.5 * Math.cos((t / 260) * Math.PI * 2));
-    leds.set(LIME.map((c) => Math.round(c * a)), SPARK * 3);
+  // LED frames: per frame, the 10 ms ticks since the last one, a 24-bit mask of the LEDs that changed
+  // and their RGB. Returns [ms, 72 bytes] with each frame whole.
+  function unpackLed(b64) {
+    const b = bytes(b64), p = { i: 0 }, frames = [];
+    let leds = new Uint8Array(LED_COUNT * 3), t = 0;
+    while (p.i < b.length) {
+      t += varint(b, p) * 10;
+      const mask = b[p.i] | (b[p.i + 1] << 8) | (b[p.i + 2] << 16);
+      p.i += 3;
+      leds = leds.slice();
+      for (let k = 0; k < LED_COUNT; k++) {
+        if (mask & (1 << k)) { leds.set(b.subarray(p.i, p.i + 3), k * 3); p.i += 3; }
+      }
+      frames.push([t, leds]);
+    }
+    return frames;
   }
+
+  // OLED frames (the SSD1305's memory: 8 pages of 128 columns, bit 0 at the top): per frame, the ticks
+  // since the last one, then the runs that changed, each as the bytes skipped, its length and its bytes.
+  function unpackOled(b64) {
+    const b = bytes(b64), p = { i: 0 }, frames = [];
+    let ram = new Uint8Array(1024), t = 0;
+    while (p.i < b.length) {
+      t += varint(b, p) * 10;
+      ram = ram.slice();
+      let at = 0;
+      for (let runs = varint(b, p); runs > 0; runs--) {
+        at += varint(b, p);
+        const n = varint(b, p);
+        ram.set(b.subarray(p.i, p.i + n), at);
+        p.i += n;
+        at += n;
+      }
+      frames.push([t, ram]);
+    }
+    return frames;
+  }
+
+  // The frame showing at `t`: the last one at or before it.
+  function frameAt(frames, t) {
+    let lo = 0, hi = frames.length - 1;
+    if (hi < 0 || frames[0][0] > t) return null;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (frames[mid][0] <= t) lo = mid;
+      else hi = mid - 1;
+    }
+    return frames[lo][1];
+  }
+
+  const decoded = {};
+  function clip(id) {
+    if (!decoded[id]) {
+      const c = CLIPS[id];
+      decoded[id] = { ...c, led: unpackLed(c.led), oled: unpackOled(c.oled), front: c.front ?? [] };
+    }
+    return decoded[id];
+  }
+
+  // The closing image: every LED but one, lit by the page rather than the firmware.
+  const almost = (t) => {
+    const leds = new Uint8Array(LED_COUNT * 3);
+    for (let k = 0; k < LED_COUNT; k++) leds.set(LIME, k * 3);
+    const a = 0.12 + 0.5 * (0.5 - 0.5 * Math.cos((t / 2600) * Math.PI * 2));
+    leds.set(LIME.map((c) => Math.round(c * a)), SPARK * 3);
+    return leds;
+  };
 
   class Ring {
     constructor(canvas, { state, showTally = false, onLabel } = {}) {
       this.canvas = canvas;
       this.ctx = canvas.getContext('2d');
-      this.leds = new Uint8Array(512);
+      this.oled = document.createElement('canvas');
+      this.oled.width = 512;
+      this.oled.height = 256;
       this.showTally = showTally;
       this.onLabel = onLabel;
       this.tally = 0;
@@ -174,84 +130,184 @@
     }
 
     play(state) {
-      this.scenario = SCENARIOS[state];
+      this.state = state;
+      this.clip = state === 'almost' ? null : clip(state);
       this.startedAt = performance.now();
       this.label = null;
       if (reduceMotion) this.still();
     }
 
-    still() { this.renderTick(this.scenario.stillAt); }
+    still() { this.render(this.clip ? this.clip.still : 650); }
 
     resize() {
       const ratio = Math.min(devicePixelRatio || 1, 2);
       const box = this.canvas.getBoundingClientRect();
       this.canvas.width = Math.round(box.width * ratio);
       this.canvas.height = Math.round(box.height * ratio);
+      this.body = null;
       if (reduceMotion) this.still();
     }
 
-    tick(now) { this.renderTick(Math.floor((now - this.startedAt) / TICK_MS)); }
+    tick(now) { this.render(now - this.startedAt); }
 
-    renderTick(tick) {
-      const { scenario: sc, leds } = this;
-      const t = tick % sc.length;
-      const segment = sc.segments.find((s) => t < s.start + s.ticks);
-      leds.fill(0);
-      if (segment.draw) segment.draw(leds, t - segment.start);
-      if (segment.label !== this.label) {
-        this.label = segment.label;
-        if (this.onLabel) this.onLabel(segment.label);
+    render(ms) {
+      const c = this.clip;
+      if (!c) {
+        this.paint(almost(ms), null, 0);
+        return;
       }
-      this.paint();
+      const t = ms % c.length;
+      const segment = c.segments.find(([, at, length]) => t < at + length);
+      if (segment[0] !== this.label) {
+        this.label = segment[0];
+        if (this.onLabel) this.onLabel(this.label);
+      }
+      this.paint(frameAt(c.led, t), frameAt(c.oled, t), frameAt(c.front, t) || 0);
     }
 
-    paint() {
-      const { ctx, canvas, leds } = this;
-      const size = canvas.width;
-      if (!size) return;
-      const c = size / 2;
-      ctx.clearRect(0, 0, size, size);
-      const radius = size * (this.showTally ? 0.33 : 0.36);
-      const length = size * 0.062;
-      const width = size * 0.036;
-      ctx.lineCap = 'round';
+    // The device's radius: smaller when the tally runs round it.
+    get radius() { return this.canvas.width * (this.showTally ? 0.355 : 0.4); }
 
-      for (let k = 0; k < LED_COUNT; k++) {
-        const a = (k * 15 - 90) * (Math.PI / 180);
-        const x = c + Math.cos(a) * radius;
-        const y = c + Math.sin(a) * radius;
-        const dx = -Math.sin(a) * length * 0.5;
-        const dy = Math.cos(a) * length * 0.5;
-        const segment = (colour) => {
-          ctx.lineWidth = width;
-          ctx.strokeStyle = colour;
-          ctx.beginPath();
-          ctx.moveTo(x - dx, y - dy);
-          ctx.lineTo(x + dx, y + dy);
-          ctx.stroke();
-        };
-        segment('rgba(242,244,247,.07)');
-        const [r, g, b] = leds.subarray(k * 3, k * 3 + 3);
-        const peak = Math.max(r, g, b);
-        if (peak < 3) continue;
-        // LED drive values to screen: keep the hue, lift dim levels the way the eye sees an LED.
-        const alpha = (peak / 255) ** 0.6;
-        const scale = 255 / peak;
-        const rgb = `${Math.round(r * scale)},${Math.round(g * scale)},${Math.round(b * scale)}`;
-        ctx.shadowColor = `rgba(${rgb},${alpha})`;
-        ctx.shadowBlur = size * 0.05 * alpha;
-        segment(`rgba(${rgb},${alpha})`);
-        ctx.shadowBlur = 0;
+    // One LED's square, rotated with the ring.
+    square(g, k, fill) {
+      const { width: size } = this.canvas, c = size / 2, R = this.radius;
+      const a = (k * 15 - 90) * (Math.PI / 180), side = R * 0.11;
+      g.save();
+      g.translate(c + Math.cos(a) * R * 0.83, c + Math.sin(a) * R * 0.83);
+      g.rotate(a + Math.PI / 2);
+      g.fillStyle = fill;
+      g.beginPath();
+      g.roundRect(-side / 2, -side / 2, side, side, side * 0.24);
+      g.fill();
+      g.restore();
+    }
+
+    // The shell, the glass and the LEDs behind it, off: drawn once per size.
+    paintBody() {
+      const size = this.canvas.width, c = size / 2, R = this.radius;
+      const body = document.createElement('canvas');
+      body.width = body.height = size;
+      const g = body.getContext('2d');
+      let grad = g.createRadialGradient(c, c - R * 0.2, R * 0.6, c, c, R * 1.09);
+      grad.addColorStop(0, '#24272c');
+      grad.addColorStop(1, '#101215');
+      g.fillStyle = grad;
+      g.beginPath();
+      g.arc(c, c, R * 1.08, 0, Math.PI * 2);
+      g.fill();
+      grad = g.createRadialGradient(c - R * 0.3, c - R * 0.35, R * 0.05, c, c, R);
+      grad.addColorStop(0, '#16181c');
+      grad.addColorStop(0.7, '#08090b');
+      grad.addColorStop(1, '#040506');
+      g.fillStyle = grad;
+      g.beginPath();
+      g.arc(c, c, R, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = 'rgba(255,255,255,0.06)';
+      g.lineWidth = R * 0.012;
+      g.stroke();
+      for (let k = 0; k < LED_COUNT; k++) this.square(g, k, 'rgba(255,255,255,0.03)');
+      grad = g.createLinearGradient(c - R, c - R, c + R * 0.2, c + R * 0.4);
+      grad.addColorStop(0, 'rgba(255,255,255,0.07)');
+      grad.addColorStop(0.45, 'rgba(255,255,255,0)');
+      g.fillStyle = grad;
+      g.beginPath();
+      g.ellipse(c - R * 0.22, c - R * 0.3, R * 0.62, R * 0.38, -0.65, 0, Math.PI * 2);
+      g.fill();
+      this.body = body;
+    }
+
+    setOled(ram) {
+      if (ram === this.ram) return;
+      this.ram = ram;
+      const g = this.oled.getContext('2d');
+      g.clearRect(0, 0, 512, 256);
+      if (!ram) return;
+      g.fillStyle = '#eef2f6';
+      for (let i = 0; i < 1024; i++) {
+        const byte = ram[i];
+        if (!byte) continue;
+        const x = (i % 128) * 4, page = i >> 7;
+        for (let bit = 0; bit < 8; bit++) if (byte & (1 << bit)) g.fillRect(x, (page * 8 + bit) * 4, 4, 4);
+      }
+    }
+
+    paint(leds, ram, front) {
+      const { ctx: g, canvas } = this;
+      const size = canvas.width, c = size / 2, R = this.radius;
+      if (!size) return;
+      if (!this.body) this.paintBody();
+      g.globalCompositeOperation = 'source-over';
+      g.clearRect(0, 0, size, size);
+
+      // The front light, ahead of the device.
+      const beam = Math.min(1, front / 100);
+      if (beam) {
+        const grad = g.createRadialGradient(c, c - R * 1.08, 0, c, c - R * 1.08, R * 0.9);
+        grad.addColorStop(0, `rgba(255,252,240,${0.85 * beam})`);
+        grad.addColorStop(1, 'rgba(255,252,240,0)');
+        g.fillStyle = grad;
+        g.fillRect(0, 0, size, c);
+      }
+      g.drawImage(this.body, 0, 0);
+      if (beam) {
+        g.fillStyle = `rgba(255,252,240,${beam})`;
+        g.beginPath();
+        g.roundRect(c - R * 0.22, c - R * 1.1, R * 0.44, R * 0.05, R * 0.025);
+        g.fill();
+      }
+
+      // The display: 128 × 64 across 0.95 of the radius, from a photo of the device.
+      this.setOled(ram);
+      if (ram) {
+        const w = R * 0.95, h = w / 2;
+        g.save();
+        g.shadowColor = 'rgba(235,242,250,0.3)';
+        g.shadowBlur = R * 0.015;
+        g.imageSmoothingEnabled = w / 128 < 2.5;
+        g.drawImage(this.oled, c - w / 2, c - h / 2, w, h);
+        g.restore();
+      }
+
+      if (leds) {
+        g.globalCompositeOperation = 'lighter';
+        for (let k = 0; k < LED_COUNT; k++) {
+          const light = [LIGHT[leds[k * 3]], LIGHT[leds[k * 3 + 1]], LIGHT[leds[k * 3 + 2]]];
+          const peak = Math.max(...light);
+          if (peak < 0.0015) continue;
+          const a = (k * 15 - 90) * (Math.PI / 180);
+          const x = c + Math.cos(a) * R * 0.83, y = c + Math.sin(a) * R * 0.83;
+          const hue = light.map((l) => Math.round(255 * encode(l / peak)));
+          const level = Math.min(1, encode(Math.min(1, peak * EXPOSURE)));
+          // the bloom on the glass, the diffuser, and the die, which reads as white past what a screen shows
+          const bloom = R * (0.1 + 0.1 * level);
+          let grad = g.createRadialGradient(x, y, 0, x, y, bloom);
+          grad.addColorStop(0, `rgba(${hue},${0.5 * level})`);
+          grad.addColorStop(1, `rgba(${hue},0)`);
+          g.fillStyle = grad;
+          g.fillRect(x - bloom, y - bloom, bloom * 2, bloom * 2);
+          this.square(g, k, `rgb(${light.map((l) => Math.round(255 * encode(Math.min(1, l * EXPOSURE))))})`);
+          const hot = Math.min(0.75, Math.max(0, peak * EXPOSURE - 0.45) * 0.9);
+          if (hot > 0) {
+            const r = R * 0.05;
+            grad = g.createRadialGradient(x, y, 0, x, y, r);
+            grad.addColorStop(0, `rgba(255,255,255,${hot})`);
+            grad.addColorStop(1, 'rgba(255,255,255,0)');
+            g.fillStyle = grad;
+            g.fillRect(x - r, y - r, r * 2, r * 2);
+          }
+        }
+        g.globalCompositeOperation = 'source-over';
       }
 
       if (this.showTally) {
         this.shown += (this.tally - this.shown) * (reduceMotion ? 1 : 0.08);
         for (let i = 0; i < LED_COUNT; i++) {
           const a = (i * 15 - 90) * (Math.PI / 180);
-          ctx.fillStyle = i < this.shown - 0.01 ? 'rgb(198,255,61)' : 'rgba(242,244,247,.14)';
-          ctx.beginPath();
-          ctx.arc(c + Math.cos(a) * size * 0.47, c + Math.sin(a) * size * 0.47, size * 0.0075, 0, Math.PI * 2);
-          ctx.fill();
+          g.fillStyle = i < this.shown - 0.01 ? 'rgb(198,255,61)' : 'rgba(242,244,247,.14)';
+          g.beginPath();
+          g.arc(c + Math.cos(a) * size * 0.47, c + Math.sin(a) * size * 0.47, size * 0.0075, 0, Math.PI * 2);
+          g.fill();
         }
       }
     }

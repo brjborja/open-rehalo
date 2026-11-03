@@ -6,7 +6,7 @@ out=$site/../dist/site
 
 rm -rf "$out"
 mkdir -p "$out"
-cp "$site"/{index.html,style.css,firmware.js,ring.js} "$out/"
+cp "$site"/{index.html,style.css,clips.js,ring.js} "$out/"
 cp -R "$site/assets" "$out/"
 
 # Every local file the page references must be there, and nothing unreferenced ships.

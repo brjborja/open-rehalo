@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Desktop GUI (Electron) for the SmartHalo 2 — scan, recover/pair and control over BLE, with a hardware-free mock mode on the emulator.",
-  "author": "brjborja",
+  "author": "cyberlynx33",
   "license": "MIT",
   "main": "src/main.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "io.github.brjborja.rehalo.desktop",
+    "appId": "io.github.cyberlynx33.rehalo.desktop",
     "productName": "rehalo Desktop",
     "asar": false,
     "directories": {

@@ -77,7 +77,7 @@ The Linux and desktop tools need the SmartHalo 2 firmware source to run a real r
 rehalo isn't on the App Store yet. The app is unsigned, and you sideload it with your own Apple ID.
 
 **Get the `.ipa`:** download `rehalo-unsigned.ipa` from the
-[latest release](https://github.com/brjborja/open-rehalo/releases/latest), or build it yourself with
+[latest release](https://github.com/cyberlynx33/open-rehalo/releases/latest), or build it yourself with
 `cd clients/ios && xcodegen generate` on a Mac.
 
 **Install it** with [iLoader](https://github.com/nab138/iloader) over USB, or with

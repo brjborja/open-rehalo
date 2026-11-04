@@ -7,7 +7,7 @@
 
 # rehalo: an open-source app for the SmartHalo 2
 
-Website: [rehalo.app](https://rehalo.app/) · Brand assets: [`brand/`](brand/).
+Website: [rehalo.app](https://rehalo.app/)
 
 The company behind the SmartHalo 2 bike ring closed in 2021 and its servers went with it. rehalo is an
 independent iPhone app that talks to the ring directly over Bluetooth, with no account and no company

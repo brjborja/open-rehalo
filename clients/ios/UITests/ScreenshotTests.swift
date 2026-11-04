@@ -99,15 +99,11 @@ final class ScreenshotTests: XCTestCase {
     func test5_Recovery() {
         launch()
         guard tap(app.tabBars.buttons["Halo"], "tab-halo"),
-              tap(app.buttons["Settings"], "settings"),
-              tap(app.buttons["Advanced"], "advanced") else { return }
+              tap(app.buttons["Settings"], "settings") else { return }
         pause(2)
-        let simulate = app.buttons["Simulate re-pair"]
-        for _ in 0..<8 where !(simulate.exists && simulate.isHittable) {
-            app.swipeUp()
-            pause(0.5)
-        }
-        guard tap(simulate, "simulate-repair") else { return }
+        guard tap(scrolledTo(app.buttons["Advanced"]), "advanced") else { return }
+        pause(2)
+        guard tap(scrolledTo(app.buttons["Simulate re-pair"]), "simulate-repair") else { return }
         pause(3)
         shot("15-recovery-1")
         guard tap(app.buttons["Recover"], "recover"),
@@ -161,6 +157,15 @@ final class ScreenshotTests: XCTestCase {
         guard appears(element, name) else { return false }
         element.tap()
         return true
+    }
+
+    /// Swipes up until the element is on screen: lists only build the rows near it.
+    private func scrolledTo(_ element: XCUIElement) -> XCUIElement {
+        for _ in 0..<10 where !(element.exists && element.isHittable) {
+            app.swipeUp()
+            pause(0.5)
+        }
+        return element
     }
 
     /// Waits for an element; if it never shows, dumps the UI tree beside the PNGs and fails.

@@ -39,7 +39,7 @@ struct SettingsView: View {
 
             Section {
                 LabeledContent("Version", value: Self.appVersion)
-                Link("Project on GitHub", destination: URL(string: "https://github.com/brjborja/open-rehalo")!)
+                Link("Project on GitHub", destination: URL(string: "https://github.com/cyberlynx33/open-rehalo")!)
             } header: {
                 Text("About")
             } footer: {

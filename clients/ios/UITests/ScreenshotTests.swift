@@ -1,6 +1,7 @@
 import XCTest
 
-/// Walks the app in demo mode and saves the website's screenshots (`.github/workflows/screenshots.yml`).
+/// Walks the app in demo mode and saves the screenshots of the website and the README
+/// (`.github/workflows/screenshots.yml`).
 /// Not a behaviour test: a missing element only skips that screen and dumps the UI tree beside the
 /// PNGs, so one renamed label can't cost the other shots.
 final class ScreenshotTests: XCTestCase {
@@ -94,6 +95,27 @@ final class ScreenshotTests: XCTestCase {
         shot("14-settings-alerts")
     }
 
+    /// The recovery wizard's three steps, as demo mode plays them (Settings › Advanced › Simulate re-pair).
+    func test5_Recovery() {
+        launch()
+        guard tap(app.tabBars.buttons["Halo"], "tab-halo"),
+              tap(app.buttons["Settings"], "settings") else { return }
+        pause(2)
+        guard tap(scrolledTo(app.buttons["Advanced"]), "advanced") else { return }
+        pause(2)
+        guard tap(scrolledTo(app.buttons["Simulate re-pair"]), "simulate-repair") else { return }
+        pause(3)
+        shot("15-recovery-1")
+        guard tap(app.buttons["Recover"], "recover"),
+              appears(app.buttons["I've rebooted it"], "rebooted") else { return }
+        pause(1)
+        shot("16-recovery-2")
+        guard tap(app.buttons["I've rebooted it"], "rebooted"),
+              appears(app.buttons["Continue"], "continue") else { return }
+        pause(1)
+        shot("17-recovery-3")
+    }
+
     // MARK: - Helpers
 
     private func launch() {
@@ -132,6 +154,22 @@ final class ScreenshotTests: XCTestCase {
 
     @discardableResult
     private func tap(_ element: XCUIElement, _ name: String) -> Bool {
+        guard appears(element, name) else { return false }
+        element.tap()
+        return true
+    }
+
+    /// Swipes up until the element is on screen: lists only build the rows near it.
+    private func scrolledTo(_ element: XCUIElement) -> XCUIElement {
+        for _ in 0..<10 where !(element.exists && element.isHittable) {
+            app.swipeUp()
+            pause(0.5)
+        }
+        return element
+    }
+
+    /// Waits for an element; if it never shows, dumps the UI tree beside the PNGs and fails.
+    private func appears(_ element: XCUIElement, _ name: String) -> Bool {
         guard element.waitForExistence(timeout: 12) else {
             let tree = app.debugDescription
             try? tree.write(to: Self.outputDir.appendingPathComponent("missing-\(name).txt"),
@@ -139,7 +177,6 @@ final class ScreenshotTests: XCTestCase {
             XCTFail("Missing element: \(name)")
             return false
         }
-        element.tap()
         return true
     }
 

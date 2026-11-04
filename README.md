@@ -1,4 +1,9 @@
-<p align="center"><img src="brand/png/rehalo-horizontal.png" alt="rehalo" height="72"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/png/rehalo-horizontal.png">
+    <img src="brand/png/rehalo-horizontal-night.png" alt="rehalo" height="72">
+  </picture>
+</p>
 
 # rehalo: an open-source app for the SmartHalo 2
 
@@ -17,6 +22,21 @@ and App Store and Google Play releases are planned.
 > No warranty: use at your own risk. Opening the case and touching the battery can damage the hardware.
 
 ## Features (iOS app)
+
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="docs/screenshots/map.png" alt="Map tab with the demo route loaded" width="240"></td>
+    <td align="center" width="33%"><img src="docs/screenshots/routes.png" alt="Routes tab with the route library" width="240"></td>
+    <td align="center" width="33%"><img src="docs/screenshots/halo.png" alt="Halo tab with the light, the alarm and the ring's status" width="240"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Map</b><br><sub>Search a place or open a route, then navigate.</sub></td>
+    <td align="center"><b>Routes</b><br><sub>Your imported routes, with distance, climb and time.</sub></td>
+    <td align="center"><b>Halo</b><br><sub>Light, alarm, ring cards and tap shortcuts.</sub></td>
+  </tr>
+</table>
+
+<sub>Screenshots from demo mode, which simulates the ring.</sub>
 
 Everything that touches the ring runs over Bluetooth. A self-hosted server is optional. Maps, search
 and directions use Apple Maps and need internet.
@@ -72,6 +92,19 @@ Open the app, pick your SmartHalo and follow the recovery wizard. The ring has t
 a firmware quirk keeps the old password in memory until the next boot. You can drain the battery and
 recharge it, or disconnect the battery if you're comfortable opening the case. There is no reboot over
 Bluetooth: the firmware refuses it unless an app is already paired. Use this only on your own device.
+
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="docs/screenshots/recovery-1.png" alt="Recovery, step 1 of 3: Recover your Halo" width="240"></td>
+    <td align="center" width="33%"><img src="docs/screenshots/recovery-2.png" alt="Recovery, step 2 of 3: Reboot the Halo" width="240"></td>
+    <td align="center" width="33%"><img src="docs/screenshots/recovery-3.png" alt="Recovery, step 3 of 3: Done" width="240"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>1. Recover your Halo</b><br><sub>Un-pairs the ring and creates a new password, saved in your Keychain.</sub></td>
+    <td align="center"><b>2. Reboot the Halo</b><br><sub>Disconnect the battery or let it drain. The app notices when the ring is back.</sub></td>
+    <td align="center"><b>3. Done</b><br><sub>The ring is paired with this iPhone again.</sub></td>
+  </tr>
+</table>
 
 ## Self-hosted server (optional)
 
